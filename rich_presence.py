@@ -5,17 +5,19 @@ import pypresence
 import requests
 
 title = "deciphering..."
+artist = "deciphering..."
 start = int(time.time().real)
 end = start + 1
 thumbnail = "https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_"
 url = "https://music.youtube.com/"
 
 buttons = [
-    {"label": "Listen", "url": url}
+    {"label": "Listen", "url": url},
+    {"label": "Play Globle", "url": "https://globle-game.com/game"},
 ]
 
 # path to txt file with the discord oauth client ID
-o_auth_file = open("-- path to your oauth client ID --")
+o_auth_file = open("C:\\Users\\andyj\\PJ_Codes\\discord_oauth.txt")
 o_auth_client_id = o_auth_file.readline()
 o_auth_file.close()
 
@@ -23,10 +25,10 @@ o_auth_file.close()
 rPresence = pypresence.Presence(o_auth_client_id)
 
 rPresence.connect()
-rPresence.update(state = title, large_image = thumbnail, buttons = buttons, start = start, end = end)
+rPresence.update(state = title, large_image = thumbnail, buttons = buttons, start = start, end = end, details=artist)
 
 # Chrome.exe path then opening chrome in a debug environment
-debugProcess = subprocess.Popen("-path to chrome.exe- --remote-debugging-port=9222 --user-data-dir=\"C:\\ChromeDebug\"")
+debugProcess = subprocess.Popen("\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --remote-debugging-port=9222 --user-data-dir=\"C:\\ChromeDebug\"")
 
 time.sleep(5)
 
@@ -74,26 +76,29 @@ if __name__ == "__main__":
 
                 if raw_items:
                     items = raw_items[0]
-                    updated_title = items["snippet"]["title"]
+                    updated_title = str(items["snippet"]["title"])
                     updated_thumbnail = items["snippet"]["thumbnails"]["default"]["url"]
                     duration = items["contentDetails"]["duration"]
-                    channelTitle = str(items["snippet"]["channelTitle"])
+                    updated_artist = str(items["snippet"]["channelTitle"])
 
-                    if channelTitle not in updated_title:
-                        updated_title = f"{updated_title} - {channelTitle.replace(" - Topic", "")}"
+                    if "-" in updated_title:
+                        updated_artist = updated_title[0:updated_title.find("-")].strip()
+                        updated_title = updated_title[updated_title.find("-") + 1:].strip()
 
                     if url != updated_url:
                         title = updated_title
                         start = int(time.time().real)
                         end = start + cast_time(duration)
                         thumbnail = updated_thumbnail
+                        artist = updated_artist
 
                         buttons = [
-                            {"label": "Listen", "url": updated_url}
+                            {"label": "Listen", "url": url},
+                            {"label": "Play Globle", "url": "https://globle-game.com/game"},
                         ]
 
                         url = updated_url
-                        rPresence.update(state=title, large_image=thumbnail, large_text="Current song", buttons=buttons, start=start, end=end, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix")
+                        rPresence.update(state=artist, large_image=thumbnail, large_text="Current song", buttons=buttons, start=start, end=end, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix", details=title)
 
             time.sleep(15)
         except Exception as e:
