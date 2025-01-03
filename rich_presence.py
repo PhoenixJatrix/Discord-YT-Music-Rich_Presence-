@@ -17,7 +17,7 @@ buttons = [
 sessions = []
 
 # path to txt file with the discord oauth client ID
-o_auth_file = open("-- path to your oauth client ID --")
+o_auth_file = open("C:\\Users\\andyj\\PJ_Codes\\discord_oauth.txt")
 o_auth_client_id = o_auth_file.readline()
 o_auth_file.close()
 
@@ -28,7 +28,7 @@ rPresence.connect()
 rPresence.update(state = title, large_image = thumbnail, buttons = buttons, start = start, end = end)
 
 # Chrome.exe path then opening chrome in a debug environment
-debugProcess = subprocess.Popen("-path to chrome.exe- --remote-debugging-port=9222 --user-data-dir=\"C:\\ChromeDebug\"")
+debugProcess = subprocess.Popen("\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --remote-debugging-port=9222 --user-data-dir=\"C:\\ChromeDebug\"")
 
 time.sleep(5)
 
