@@ -14,8 +14,6 @@ buttons = [
     {"label": "Listen", "url": url}
 ]
 
-sessions = []
-
 # path to txt file with the discord oauth client ID
 o_auth_file = open("C:\\Users\\andyj\\PJ_Codes\\discord_oauth.txt")
 o_auth_client_id = o_auth_file.readline()
