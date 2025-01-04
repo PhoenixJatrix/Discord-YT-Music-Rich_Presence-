@@ -4,8 +4,8 @@ import time
 import pypresence
 import requests
 
-title = "deciphering..."
-artist = "deciphering..."
+title = "Deciphering..."
+artist = "Deciphering..."
 start = int(time.time().real)
 end = start + 1
 thumbnail = "https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_"
@@ -13,11 +13,11 @@ url = "https://music.youtube.com/"
 
 buttons = [
     {"label": "Listen", "url": url},
-    {"label": "Play Globle", "url": "https://globle-game.com/game"},
+    {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-YT-Music-Rich_Presence-"},
 ]
 
 # path to txt file with the discord oauth client ID
-o_auth_file = open("C:\\Users\\andyj\\PJ_Codes\\discord_oauth.txt")
+o_auth_file = open("C:\\Users\\Public\\Downloads\\discord_oauth.txt")
 o_auth_client_id = o_auth_file.readline()
 o_auth_file.close()
 
@@ -74,12 +74,16 @@ if __name__ == "__main__":
 
                 raw_items = json.loads(json.dumps(reqJson["items"]))
 
+                print(f"Raw Items: {raw_items}")
+
                 if raw_items:
                     items = raw_items[0]
                     updated_title = str(items["snippet"]["title"])
                     updated_thumbnail = items["snippet"]["thumbnails"]["default"]["url"]
                     duration = items["contentDetails"]["duration"]
                     updated_artist = str(items["snippet"]["channelTitle"])
+
+                    print(f"Title: {updated_title}")
 
                     if "-" in updated_title:
                         updated_artist = updated_title[0:updated_title.find("-")].strip()
@@ -93,8 +97,8 @@ if __name__ == "__main__":
                         artist = updated_artist
 
                         buttons = [
-                            {"label": "Listen", "url": url},
-                            {"label": "Play Globle", "url": "https://globle-game.com/game"},
+                            {"label": "Listen", "url": updated_url},
+                            {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-YT-Music-Rich_Presence-"},
                         ]
 
                         url = updated_url
