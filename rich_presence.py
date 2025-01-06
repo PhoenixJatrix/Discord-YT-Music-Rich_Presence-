@@ -5,7 +5,7 @@ import pypresence
 import requests
 
 title = "Deciphering..."
-artist = "Deciphering..."
+artist = "Made by PhoenixJatrix"
 start = int(time.time().real)
 end = start + 1
 thumbnail = "https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_"
@@ -20,6 +20,13 @@ buttons = [
 o_auth_file = open("C:\\Users\\Public\\Downloads\\discord_oauth.txt")
 o_auth_client_id = o_auth_file.readline()
 o_auth_file.close()
+
+# path to google api key
+google_apikey_file = open("C:\\Users\\Public\\Downloads\\google_apikey.txt")
+google_apikey = google_apikey_file.readline()
+google_apikey_file.close()
+
+error_log = open("C:\\Users\\Public\\Downloads\\log.txt", "a")
 
 # create an instance with the client ID
 rPresence = pypresence.Presence(o_auth_client_id)
@@ -55,6 +62,22 @@ def cast_time(time_str: str):
 
     return total_time
 
+def log_message(message) :
+    hour = time.localtime().tm_hour
+    minute = time.localtime().tm_min
+    sec = time.localtime().tm_sec
+    time_of_day = "PM" if hour > 12 else "AM"
+
+    if hour > 12:
+        hour = hour - 12
+    error_log.write(f"{message} at {f"0{hour}" if hour < 10 else hour}:{f"0{minute}" if minute < 10 else minute}:{f"0{sec}" if sec < 10 else sec} {time_of_day} on {time.localtime().tm_year}:{time.localtime().tm_mon}:{time.localtime().tm_mday}\n\n")
+
+def extract_id(target_url) -> str:
+    if "&" in target_url:
+        return updated_url[updated_url.find("=") + 1:updated_url.find("&")]
+    else:
+        return updated_url[updated_url.find("=") + 1:]
+
 if __name__ == "__main__":
     while True:
         try:
@@ -63,20 +86,16 @@ if __name__ == "__main__":
                 tab = tabs[0]
 
                 updated_url = str(tab["url"])
+                updated_id = extract_id(updated_url)
 
-                if "&" in updated_url:
-                    updated_id = updated_url[updated_url.find("=") + 1:updated_url.find("&")]
-                else:
-                    updated_id = updated_url[updated_url.find("=") + 1:]
-
-                req = requests.get(f"https://ytapi.apps.mattw.io/v3/videos?key=foo&quotaUser=QZ78udzWoIjf3TDqixoVjE90ue49lHO6iu5ttU4R&part=snippet%2Cstatistics%2CrecordingDetails%2Cstatus%2CliveStreamingDetails%2Clocalizations%2CcontentDetails%2CpaidProductPlacementDetails%2Cplayer%2CtopicDetails&id={updated_id}&_=1735889182215")
+                req = requests.get(f"https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id={updated_id}&key={google_apikey}")
                 reqJson = req.json()
 
-                raw_items = json.loads(json.dumps(reqJson["items"]))
+                raw_items = list(json.loads(json.dumps(reqJson["items"])))
 
                 print(f"Raw Items: {raw_items}")
 
-                if raw_items:
+                if len(raw_items) > 0:
                     items = raw_items[0]
                     updated_title = str(items["snippet"]["title"])
                     updated_thumbnail = items["snippet"]["thumbnails"]["default"]["url"]
@@ -101,11 +120,17 @@ if __name__ == "__main__":
                             {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-YT-Music-Rich_Presence-"},
                         ]
 
+                        artist = artist if len(artist) > 2 else f"{artist}   "
+                        title = title if len(title) > 2 else f"{title}   "
+
                         url = updated_url
-                        rPresence.update(state=artist, large_image=thumbnail, large_text="Current song", buttons=buttons, start=start, end=end, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix", details=title)
+                        rPresence.update(state=artist, large_image=thumbnail, large_text=title, buttons=buttons, start=start, end=end, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix", details=title)
+                else:
+                    log_message(f"empty metadata for {url}")
 
             time.sleep(15)
         except Exception as e:
             print(e.args)
+            log_message(e)
             #kill_process()
             break
