@@ -3,6 +3,8 @@ import subprocess
 import time
 import pypresence
 import requests
+import pathlib
+import os
 
 title = "Deciphering..."
 artist = "Made by PhoenixJatrix"
@@ -16,19 +18,45 @@ buttons = [
     {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts"}
 ]
 
-o_auth_file = open("oauth.txt")
-o_auth_client_id = o_auth_file.readline()
-o_auth_file.close()
+bat_path = pathlib.Path.home() / 'Desktop' / "YT Music.bat"
 
-chrome_path_file = open("chromepath.txt")
-chrome_path = chrome_path_file.readline()
-chrome_path_file.close()
+o_auth_client_id = None
+chrome_path = None
+google_apikey = None
 
-google_apikey_file = open("google_apikey")
-google_apikey = google_apikey_file.readline()
-google_apikey_file.close()
+# use folder saved in bat file to locate files needed. used when launched from the desktop
+if os.getcwd().lower().strip() == str(pathlib.Path.home() / 'Desktop').lower().strip():
+    parent_folder_file = open(f"{os.getcwd()}\\YT Music.bat")
+    parent_folder = parent_folder_file.readline().replace("::", "").replace("\n", "")
+    parent_folder_file.close()
 
-error_log = open("log.txt", "a")
+    o_auth_file = open(f"{parent_folder}\\oauth.txt")
+    o_auth_client_id = o_auth_file.readline()
+    o_auth_file.close()
+
+    chrome_path_file = open(f"{parent_folder}\\chromepath.txt")
+    chrome_path = chrome_path_file.readline().replace("\"", "")
+    chrome_path_file.close()
+
+    google_apikey_file = open(f"{parent_folder}\\google_apikey")
+    google_apikey = google_apikey_file.readline()
+    google_apikey_file.close()
+
+    error_log = open(f"{parent_folder}\\log.txt", "a")
+else:
+    o_auth_file = open(f"oauth.txt")
+    o_auth_client_id = o_auth_file.readline()
+    o_auth_file.close()
+
+    chrome_path_file = open(f"chromepath.txt")
+    chrome_path = chrome_path_file.readline().replace("\"", "")
+    chrome_path_file.close()
+
+    google_apikey_file = open(f"google_apikey")
+    google_apikey = google_apikey_file.readline()
+    google_apikey_file.close()
+
+    error_log = open("log.txt", "a")
 
 # create an instance with the client ID
 rPresence = pypresence.Presence(o_auth_client_id)
@@ -38,6 +66,9 @@ rPresence.update(state = title, large_image = thumbnail, buttons = buttons, star
 
 # Chrome.exe path then opening chrome in a debug environment
 debugProcess = subprocess.Popen(f"{chrome_path} --remote-debugging-port=9222 --user-data-dir=C:\ChromeDebug")
+
+
+checked_for_bat_existence = False
 
 time.sleep(5)
 
@@ -79,6 +110,12 @@ def extract_id(target_url) -> str:
         return updated_url[updated_url.find("=") + 1:updated_url.find("&")]
     else:
         return updated_url[updated_url.find("=") + 1:]
+
+def make_desktop_bat():
+    if not os.path.exists(bat_path):
+        bat_file = open(bat_path, "w")
+        bat_file.write(f"::{os.getcwd()}\n@echo off\npython \"{os.getcwd()}\\youtube_music_discord_rich_presence.py\"\npause")
+        bat_file.close()
 
 if __name__ == "__main__":
     while True:
@@ -127,6 +164,9 @@ if __name__ == "__main__":
 
                         url = updated_url
                         rPresence.update(state=artist, large_image=thumbnail, large_text=title, buttons=buttons, start=start, end=end, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix", details=title)
+
+                    if not checked_for_bat_existence:
+                        make_desktop_bat()
                 else:
                     log_message(f"empty metadata for {url}")
 
