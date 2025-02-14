@@ -13,20 +13,22 @@ url = "https://music.youtube.com/"
 
 buttons = [
     {"label": "Listen", "url": url},
-    {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-YT-Music-Rich_Presence-"},
+    {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts"}
 ]
 
-# path to txt file with the discord oauth client ID
-o_auth_file = open("C:\\Users\\Public\\Downloads\\discord_oauth.txt")
+o_auth_file = open("oauth.txt")
 o_auth_client_id = o_auth_file.readline()
 o_auth_file.close()
 
-# path to google api key
-google_apikey_file = open("C:\\Users\\Public\\Downloads\\google_apikey.txt")
+chrome_path_file = open("chromepath.txt")
+chrome_path = chrome_path_file.readline()
+chrome_path_file.close()
+
+google_apikey_file = open("google_apikey")
 google_apikey = google_apikey_file.readline()
 google_apikey_file.close()
 
-error_log = open("C:\\Users\\Public\\Downloads\\log.txt", "a")
+error_log = open("log.txt", "a")
 
 # create an instance with the client ID
 rPresence = pypresence.Presence(o_auth_client_id)
@@ -35,7 +37,7 @@ rPresence.connect()
 rPresence.update(state = title, large_image = thumbnail, buttons = buttons, start = start, end = end, details=artist)
 
 # Chrome.exe path then opening chrome in a debug environment
-debugProcess = subprocess.Popen("\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --remote-debugging-port=9222 --user-data-dir=\"C:\\ChromeDebug\"")
+debugProcess = subprocess.Popen(f"{chrome_path} --remote-debugging-port=9222 --user-data-dir=C:\ChromeDebug")
 
 time.sleep(5)
 
