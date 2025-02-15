@@ -23,6 +23,7 @@ The title and artist names can be better formatted but this works well enough fo
 
 You can install the libraries via cmd by typing:
 > pip install subprocess
+ 
 > pip install pypresence
 > pip install requests
 > pip install pathlib
