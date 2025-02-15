@@ -38,5 +38,6 @@ You can install the libraries via cmd by typing:
 - Google ApiKey. Watch [this](https://youtu.be/TE66McLMMEw) video or read the official Google guide https://developers.google.com/youtube/v3/getting-started#before-you-start to learn how to get the api key. When you get the key, save it to [this](https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts/blob/main/Youtube%20Music/google_apikey)(google_apikey.txt) txt file
 - Path to Google Chrome. Locate the Chrome.exe file then save the path to [this](https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts/blob/main/Youtube%20Music/chromepath.txt)(chromepath.txt) txt file
 
-That's it! You can just run the Python file via cmd or an ide and it should work
-You can optionally allow the script to create a Youtube Music shortcut in the desktop
+That's it! You can just run the Python file via cmd or an ide and it should open a Chrome instance. From there, create a Youtube Music tab and start playing songs.
+
+You can optionally allow the script to create a Youtube Music shortcut in the desktop. This way, you can easily run the script with just a click (or 2, if you're that specific)
