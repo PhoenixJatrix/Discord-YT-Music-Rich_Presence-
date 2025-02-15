@@ -5,7 +5,6 @@ import pypresence
 import requests
 import pathlib
 import os
-
 from win32com.client import Dispatch
 
 title = "Deciphering..."
@@ -163,24 +162,24 @@ if __name__ == "__main__":
                         updated_url = str(tab["url"])
                         updated_id = extract_id(updated_url)
 
-                        req = requests.get(f"https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id={updated_id}&key={google_apikey}")
+                        if url != updated_url:
+                            req = requests.get(f"https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id={updated_id}&key={google_apikey}", timeout = 15)
 
-                        reqJson = req.json()
+                            reqJson = req.json()
 
-                        raw_items = list(json.loads(json.dumps(reqJson["items"])))
+                            raw_items = list(json.loads(json.dumps(reqJson["items"])))
 
-                        if len(raw_items) > 0:
-                            items = raw_items[0]
-                            updated_title = str(items["snippet"]["title"])
-                            updated_thumbnail = items["snippet"]["thumbnails"]["default"]["url"]
-                            duration = items["contentDetails"]["duration"]
-                            updated_artist = str(items["snippet"]["channelTitle"])
+                            if len(raw_items) > 0:
+                                items = raw_items[0]
+                                updated_title = str(items["snippet"]["title"])
+                                updated_thumbnail = items["snippet"]["thumbnails"]["default"]["url"]
+                                duration = items["contentDetails"]["duration"]
+                                updated_artist = str(items["snippet"]["channelTitle"])
 
-                            if "-" in updated_title:
-                                updated_artist = updated_title[0:updated_title.find("-")].strip()
-                                updated_title = updated_title[updated_title.find("-") + 1:].strip()
+                                if "-" in updated_title:
+                                    updated_artist = updated_title[0:updated_title.find("-")].strip()
+                                    updated_title = updated_title[updated_title.find("-") + 1:].strip()
 
-                            if url != updated_url:
                                 title = updated_title
                                 start = int(time.time().real)
                                 end = start + cast_time(duration)
@@ -201,8 +200,8 @@ if __name__ == "__main__":
 
                                 print(f"Title: {title}. Url: {url}")
                                 log_songs(f"Title: {title}. Url: {url}")
-                        else:
-                            log_message(f"empty metadata for {url}")
+                    else:
+                        log_message(f"empty metadata for {url}")
 
                     time.sleep(15)
                 except Exception as e:
@@ -213,8 +212,6 @@ if __name__ == "__main__":
         command = input("Encountered an issue. Restart? (y|n): ")
 
         if command.lower() in ["yes", "y"]:
-            status_logs.close()
-            song_logs.close()
             print("Restarting")
             log_message("restarting")
 
