@@ -12,9 +12,9 @@ The title and artist names can be better formatted but this works well enough fo
 
 ### What you need:
 1. Python 3.4 or higher
-
-
-   
+  
+  
+  
 2. Libraries:
 - subprocess
 - pypresence
@@ -25,11 +25,13 @@ You can install the libraries via cmd by typing:
 > pip install subprocess
  
 > pip install pypresence
+
 > pip install requests
+
 > pip install pathlib
-
-
-
+  
+  
+  
 3. Api keys and oauth IDs:
 - Discord oauth client ID. Get [here](https://discord.com/developers/applications), then save to [this](https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts/blob/main/Youtube%20Music/oauth.txt)(oauth.txt) txt file
 - Google ApiKey. Watch [this](https://youtu.be/TE66McLMMEw) video or read the official Google guide https://developers.google.com/youtube/v3/getting-started#before-you-start to learn how to get the api key. When you get the key, save it to [this](https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts/blob/main/Youtube%20Music/google_apikey)(google_apikey.txt) txt file
