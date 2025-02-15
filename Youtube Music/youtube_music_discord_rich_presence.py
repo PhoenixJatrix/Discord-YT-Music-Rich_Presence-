@@ -6,8 +6,10 @@ import requests
 import pathlib
 import os
 
+from win32com.client import Dispatch
+
 title = "Deciphering..."
-artist = "Made by PhoenixJatrix"
+artist = "Deciphering..."
 start = int(time.time().real)
 end = start + 1
 thumbnail = "https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_"
@@ -18,67 +20,63 @@ buttons = [
     {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts"}
 ]
 
-bat_path = pathlib.Path.home() / 'Desktop' / "YT Music.bat"
+set_up_details_dir = "C:\\Users\\Public\\Downloads\\Youtube Music"
+set_up_details_file = f"{set_up_details_dir}\\setup.txt"
+bat_path = f"{set_up_details_dir}\\Youtube Music.bat"
 
-o_auth_client_id = None
-chrome_path = None
+oauth_client_id = None
 google_apikey = None
+chrome_path = None
+status_logs = None
+song_logs = None
 
-# use folder saved in bat file to locate files needed. used when launched from the desktop
-if os.getcwd().lower().strip() == str(pathlib.Path.home() / 'Desktop').lower().strip():
-    parent_folder_file = open(f"{os.getcwd()}\\YT Music.bat")
-    parent_folder = parent_folder_file.readline().replace("::", "").replace("\n", "")
-    parent_folder_file.close()
+status_logs_file = f"{set_up_details_dir}\\log.txt"
+song_logs_file = f"{set_up_details_dir}\\history.txt"
 
-    o_auth_file = open(f"{parent_folder}\\oauth.txt")
-    o_auth_client_id = o_auth_file.readline()
-    o_auth_file.close()
+def completed_setup() -> bool:
+    return os.path.exists(set_up_details_file)
 
-    chrome_path_file = open(f"{parent_folder}\\chromepath.txt")
-    chrome_path = chrome_path_file.readline().replace("\"", "")
-    chrome_path_file.close()
+def setup():
+    print("\nRead the readme.md file to learn how to get the required keys")
+    oauth_input = input("Enter Discord oauth client ID: ")
+    google_apikey_input = input("Enter Google Console apikey: ")
+    chrome_path_input = input("Enter the path to your chrome.exe file: ")
+    create_bin = input("Create a desktop shortcut as 'Youtube Music' (y|n): ")
 
-    google_apikey_file = open(f"{parent_folder}\\google_apikey")
-    google_apikey = google_apikey_file.readline()
-    google_apikey_file.close()
+    if not os.path.exists(set_up_details_dir):
+        os.mkdir(set_up_details_dir)
 
-    error_log = open(f"{parent_folder}\\log.txt", "a")
-else:
-    o_auth_file = open(f"oauth.txt")
-    o_auth_client_id = o_auth_file.readline()
-    o_auth_file.close()
+    if os.path.exists(set_up_details_dir):
+        set_up_details = open(set_up_details_file, "w")
 
-    chrome_path_file = open(f"chromepath.txt")
-    chrome_path = chrome_path_file.readline().replace("\"", "")
-    chrome_path_file.close()
+        if create_bin.lower() in ["yes", "y"]:
+            make_desktop_bat()
 
-    google_apikey_file = open(f"google_apikey")
-    google_apikey = google_apikey_file.readline()
-    google_apikey_file.close()
+        _status_log = open(status_logs_file, "a")
+        _song_logs = open(song_logs_file, "a")
 
-    error_log = open("log.txt", "a")
+        set_up_details.write(f"{oauth_input}\n{google_apikey_input}\n{chrome_path_input}")
+        set_up_details.close()
 
-# create an instance with the client ID
-rPresence = pypresence.Presence(o_auth_client_id)
+        return oauth_input, google_apikey_input, chrome_path_input, _status_log, _song_logs
+    else:
+        print("set up failed, could not save setup.txt")
+        return None
 
-rPresence.connect()
-rPresence.update(state = title, large_image = thumbnail, buttons = buttons, start = start, end = end, details=artist)
+def get_details():
+    set_up_details = open(set_up_details_file, "r")
+    _oauth_client_id = set_up_details.readline()
+    _google_apikey = set_up_details.readline()
+    _chrome_path = set_up_details.readline()
+    set_up_details.close()
 
-# Chrome.exe path then opening chrome in a debug environment
-debugProcess = subprocess.Popen(f"{chrome_path} --remote-debugging-port=9222 --user-data-dir=C:\ChromeDebug")
-
-
-checked_for_bat_existence = False
-
-time.sleep(5)
+    _status_log = open(status_logs_file, "a")
+    _song_logs = open(song_logs_file, "a")
+    return _oauth_client_id, _google_apikey, _chrome_path, _status_log, _song_logs
 
 def get_tabs():
     response = requests.get("http://localhost:9222/json")
     return response.json()
-
-def kill_process():
-    debugProcess.terminate()
-    rPresence.close()
 
 def cast_time(time_str: str):
     total_time = 0
@@ -103,7 +101,17 @@ def log_message(message) :
 
     if hour > 12:
         hour = hour - 12
-    error_log.write(f"{message} at {f"0{hour}" if hour < 10 else hour}:{f"0{minute}" if minute < 10 else minute}:{f"0{sec}" if sec < 10 else sec} {time_of_day} on {time.localtime().tm_year}:{time.localtime().tm_mon}:{time.localtime().tm_mday}\n\n")
+    status_logs.write(f"{message} at {f"0{hour}" if hour < 10 else hour}:{f"0{minute}" if minute < 10 else minute}:{f"0{sec}" if sec < 10 else sec} {time_of_day} on {time.localtime().tm_year}:{time.localtime().tm_mon}:{time.localtime().tm_mday}\n\n")
+    
+def log_songs(message) :
+    hour = time.localtime().tm_hour
+    minute = time.localtime().tm_min
+    sec = time.localtime().tm_sec
+    time_of_day = "PM" if hour > 12 else "AM"
+
+    if hour > 12:
+        hour = hour - 12
+    song_logs.write(f"{message} at {f"0{hour}" if hour < 10 else hour}:{f"0{minute}" if minute < 10 else minute}:{f"0{sec}" if sec < 10 else sec} {time_of_day} on {time.localtime().tm_year}:{time.localtime().tm_mon}:{time.localtime().tm_mday}\n\n")
 
 def extract_id(target_url) -> str:
     if "&" in target_url:
@@ -114,65 +122,103 @@ def extract_id(target_url) -> str:
 def make_desktop_bat():
     if not os.path.exists(bat_path):
         bat_file = open(bat_path, "w")
-        bat_file.write(f"::{os.getcwd()}\n@echo off\npython \"{os.getcwd()}\\youtube_music_discord_rich_presence.py\"\npause")
+        bat_file.write(f"@echo off\npython \"{os.path.abspath(__file__)}\"\npause")
         bat_file.close()
+
+        shell = Dispatch("WScript.Shell")
+        shortcut = shell.CreateShortCut(f"{pathlib.Path.home()}\\Desktop\\Youtube Music.lnk")
+        shortcut.Targetpath = bat_path
+        shortcut.IconLocation = f"{pathlib.Path(__file__).parent}\\Youtube_Music.ico"
+        shortcut.save()
 
 if __name__ == "__main__":
     while True:
-        try:
-            tabs = list(get_tabs())
-            if tabs:
-                tab = tabs[0]
+        if completed_setup():
+            oauth_client_id, google_apikey, chrome_path, status_logs, song_logs = get_details()
+            log_message(f"initialized")
+        else:
+            details = setup()
 
-                updated_url = str(tab["url"])
-                updated_id = extract_id(updated_url)
+            if details is not None:
+                oauth_client_id, google_apikey, chrome_path, status_logs, song_logs = details
+                log_message(f"first initialization")
 
-                req = requests.get(f"https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id={updated_id}&key={google_apikey}")
-                reqJson = req.json()
+        if chrome_path is not None:
+            # opening chrome in a debug environment
+            debugProcess = subprocess.Popen(f"{chrome_path} --remote-debugging-port=9222 --user-data-dir=C:\\ChromeDebug")
 
-                raw_items = list(json.loads(json.dumps(reqJson["items"])))
+            # create an instance with the client ID
+            rPresence = pypresence.Presence(oauth_client_id)
 
-                print(f"Raw Items: {raw_items}")
+            rPresence.connect()
+            rPresence.update(state=title, large_image=thumbnail, buttons=buttons, start=start, end=end, details=artist)
 
-                if len(raw_items) > 0:
-                    items = raw_items[0]
-                    updated_title = str(items["snippet"]["title"])
-                    updated_thumbnail = items["snippet"]["thumbnails"]["default"]["url"]
-                    duration = items["contentDetails"]["duration"]
-                    updated_artist = str(items["snippet"]["channelTitle"])
+            while True:
+                try:
+                    tabs = list(get_tabs())
 
-                    print(f"Title: {updated_title}")
+                    if tabs:
+                        tab = tabs[0]
 
-                    if "-" in updated_title:
-                        updated_artist = updated_title[0:updated_title.find("-")].strip()
-                        updated_title = updated_title[updated_title.find("-") + 1:].strip()
+                        updated_url = str(tab["url"])
+                        updated_id = extract_id(updated_url)
 
-                    if url != updated_url:
-                        title = updated_title
-                        start = int(time.time().real)
-                        end = start + cast_time(duration)
-                        thumbnail = updated_thumbnail
-                        artist = updated_artist
+                        req = requests.get(f"https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id={updated_id}&key={google_apikey}")
 
-                        buttons = [
-                            {"label": "Listen", "url": updated_url},
-                            {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-YT-Music-Rich_Presence-"},
-                        ]
+                        reqJson = req.json()
 
-                        artist = artist if len(artist) > 2 else f"{artist}   "
-                        title = title if len(title) > 2 else f"{title}   "
+                        raw_items = list(json.loads(json.dumps(reqJson["items"])))
 
-                        url = updated_url
-                        rPresence.update(state=artist, large_image=thumbnail, large_text=title, buttons=buttons, start=start, end=end, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix", details=title)
+                        if len(raw_items) > 0:
+                            items = raw_items[0]
+                            updated_title = str(items["snippet"]["title"])
+                            updated_thumbnail = items["snippet"]["thumbnails"]["default"]["url"]
+                            duration = items["contentDetails"]["duration"]
+                            updated_artist = str(items["snippet"]["channelTitle"])
 
-                    if not checked_for_bat_existence:
-                        make_desktop_bat()
-                else:
-                    log_message(f"empty metadata for {url}")
+                            if "-" in updated_title:
+                                updated_artist = updated_title[0:updated_title.find("-")].strip()
+                                updated_title = updated_title[updated_title.find("-") + 1:].strip()
 
-            time.sleep(15)
-        except Exception as e:
-            print(e.args)
-            log_message(e)
-            #kill_process()
+                            if url != updated_url:
+                                title = updated_title
+                                start = int(time.time().real)
+                                end = start + cast_time(duration)
+                                thumbnail = updated_thumbnail
+                                artist = updated_artist
+
+                                buttons = [
+                                    {"label": "Listen", "url": updated_url},
+                                    {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts"},
+                                ]
+
+                                artist = artist if len(artist) > 2 else f"{artist}   "
+                                title = title if len(title) > 2 else f"{title}   "
+                                artist = artist.replace(" - Topic", "", -1)
+
+                                url = updated_url
+                                rPresence.update(state=artist, large_image=thumbnail, large_text=title, buttons=buttons, start=start, end=end, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix", details=title)
+
+                                print(f"Title: {title}. Url: {url}")
+                                log_songs(f"Title: {title}. Url: {url}")
+                        else:
+                            log_message(f"empty metadata for {url}")
+
+                    time.sleep(15)
+                except Exception as e:
+                    print(e.args)
+                    log_message(e)
+                    break
+
+        command = input("Encountered an issue. Restart? (y|n): ")
+
+        if command.lower() in ["yes", "y"]:
+            status_logs.close()
+            song_logs.close()
+            print("Restarting")
+            log_message("restarting")
+
+            continue
+        else:
+            log_message("end process")
             break
