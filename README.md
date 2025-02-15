@@ -14,7 +14,7 @@ The title and artist names can be better formatted but this works well enough fo
 1. Python 3.4 or higher
    
 2. Libraries:
-- subprocess
+-- subprocess
 - pypresence
 - requests
 - pathlib
