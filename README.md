@@ -11,11 +11,12 @@ The title and artist names can be better formatted but this works well enough fo
 ![Screenshot 2025-02-14 215656](https://github.com/user-attachments/assets/e5e57d88-88d8-4957-abcf-f1ca95f56177)
 
 ### What you need:
-1. Python 3.4 or higher
+#### Python
+Python 3.4 or higher
   
   
   
-2. Libraries:
+#### Libraries:
 - subprocess
 - pypresence
 - requests
@@ -32,7 +33,7 @@ You can install the libraries via cmd by typing:
   
   
   
-3. Api keys and oauth IDs:
+#### Api keys and oauth IDs:
 - Discord oauth client ID. Get [here](https://discord.com/developers/applications), then save to [this](https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts/blob/main/Youtube%20Music/oauth.txt)(oauth.txt) txt file
 - Google ApiKey. Watch [this](https://youtu.be/TE66McLMMEw) video or read the official Google guide https://developers.google.com/youtube/v3/getting-started#before-you-start to learn how to get the api key. When you get the key, save it to [this](https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts/blob/main/Youtube%20Music/google_apikey)(google_apikey.txt) txt file
 - Path to Google Chrome. Locate the Chrome.exe file then save the path to [this](https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts/blob/main/Youtube%20Music/chromepath.txt)(chromepath.txt) txt file
