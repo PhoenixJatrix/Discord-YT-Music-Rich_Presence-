@@ -162,7 +162,7 @@ if __name__ == "__main__":
                         updated_url = str(tab["url"])
                         updated_id = extract_id(updated_url)
 
-                        if url != updated_url:
+                        if "youtube" in updated_url.lower() and url != updated_url:
                             req = requests.get(f"https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id={updated_id}&key={google_apikey}", timeout = 15)
 
                             req_json = req.json()
