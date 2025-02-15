@@ -165,9 +165,9 @@ if __name__ == "__main__":
                         if url != updated_url:
                             req = requests.get(f"https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id={updated_id}&key={google_apikey}", timeout = 15)
 
-                            reqJson = req.json()
+                            req_json = req.json()
 
-                            raw_items = list(json.loads(json.dumps(reqJson["items"])))
+                            raw_items = list(json.loads(json.dumps(req_json["items"])))
 
                             if len(raw_items) > 0:
                                 items = raw_items[0]
