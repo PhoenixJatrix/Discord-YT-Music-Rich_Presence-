@@ -1,6 +1,8 @@
 import json
 import subprocess
 import time
+
+import psutil
 import pypresence
 import requests
 import pathlib
@@ -32,12 +34,14 @@ song_logs = None
 status_logs_file = f"{set_up_details_dir}\\log.txt"
 song_logs_file = f"{set_up_details_dir}\\history.txt"
 
+epochs_before_terminating = 2
+
 def completed_setup() -> bool:
     return os.path.exists(set_up_details_file)
 
 def setup():
     print("\nRead the readme.md file to learn how to get the required keys")
-    oauth_input = input("Enter Discord oauth client ID: ")
+    oauth_input = input("Enter your app's application ID: ")
     google_apikey_input = input("Enter Google Console apikey: ")
     chrome_path_input = input("Enter the path to your chrome.exe file: ")
     create_bin = input("Create a desktop shortcut as 'Youtube Music' (y|n): ")
@@ -74,8 +78,11 @@ def get_details():
     return _oauth_client_id, _google_apikey, _chrome_path, _status_log, _song_logs
 
 def get_tabs():
+    if not is_chrome_running():
+        return None
+
     response = requests.get("http://localhost:9222/json")
-    return response.json()
+    return list(response.json())
 
 def cast_time(time_str: str):
     total_time = 0
@@ -92,7 +99,7 @@ def cast_time(time_str: str):
 
     return total_time
 
-def log_message(message) :
+def log_message(message):
     hour = time.localtime().tm_hour
     minute = time.localtime().tm_min
     sec = time.localtime().tm_sec
@@ -130,6 +137,13 @@ def make_desktop_bat():
         shortcut.IconLocation = f"{pathlib.Path(__file__).parent}\\Youtube_Music.ico"
         shortcut.save()
 
+def is_chrome_running() -> bool:
+    for pcs_iter in psutil.process_iter():
+        if pcs_iter.name() == "chrome.exe" and pcs_iter.pid == debugProcess.pid:
+            return True
+
+    return False
+
 if __name__ == "__main__":
     while True:
         if completed_setup():
@@ -147,16 +161,17 @@ if __name__ == "__main__":
             debugProcess = subprocess.Popen(f"{chrome_path} --remote-debugging-port=9222 --user-data-dir=C:\\ChromeDebug")
 
             # create an instance with the client ID
-            rPresence = pypresence.Presence(oauth_client_id)
+            rich_presence = pypresence.Presence(oauth_client_id)
 
-            rPresence.connect()
-            rPresence.update(state=title, large_image=thumbnail, buttons=buttons, start=start, end=end, details=artist)
+            rich_presence.connect()
+            rich_presence.update(state=title, large_image=thumbnail, buttons=buttons, start=start, end=end, details=artist)
 
             while True:
                 try:
-                    tabs = list(get_tabs())
+                    tabs = get_tabs()
 
-                    if tabs:
+                    if tabs is not None:
+                        epochs_before_terminating = 2
                         tab = tabs[0]
 
                         updated_url = str(tab["url"])
@@ -196,18 +211,37 @@ if __name__ == "__main__":
                                 artist = artist.replace(" - Topic", "", -1)
 
                                 url = updated_url
-                                rPresence.update(state=artist, large_image=thumbnail, large_text=title, buttons=buttons, start=start, end=end, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix", details=title)
+                                rich_presence.update(state=artist, large_image=thumbnail, large_text=title, buttons=buttons, start=start, end=end, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix", details=title)
 
                                 print(f"Title: {title}. Url: {url}")
                                 log_songs(f"Title: {title}. Url: {url}")
                     else:
-                        log_message(f"empty metadata for {url}")
+                        if not is_chrome_running():
+                            if epochs_before_terminating < 1:
+                                log_message("terminated cycle because Chrome process isn't running")
+                                print("terminated cycle because Chrome process isn't running")
+                                break
 
-                    time.sleep(15)
+                            log_message(f"terminating cycle in {15 * epochs_before_terminating} seconds, Chrome process probably not running")
+                            print(f"terminating cycle in {15 * epochs_before_terminating} seconds, Chrome process probably not running")
+
+                            epochs_before_terminating -= 1
+                        else:
+                            log_message("Could not fetch details")
+                            print("Could not fetch details")
+
+                            log_message(f"empty metadata for {url}")
+                            print(f"empty metadata for {url}")
+
                 except Exception as e:
                     print(e.args)
                     log_message(e)
                     break
+
+                time.sleep(15)
+
+        if epochs_before_terminating < 1:
+            break
 
         command = input("Encountered an issue. Restart? (y|n): ")
 

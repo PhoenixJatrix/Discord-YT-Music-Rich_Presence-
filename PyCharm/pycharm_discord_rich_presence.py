@@ -1,57 +1,82 @@
+import pathlib
 import subprocess
 import time
 import pygetwindow as gw
 import pypresence
+import os
+import psutil
+
+from win32com.client import Dispatch
 
 project = "Deciphering..."
-current_tab = "Made by PhoenixJatrix"
+current_tab = "Deciphering..."
 thumbnail = "https://cdn.discordapp.com/app-icons/1337221355300720651/1f9e0828106b6dabce6f8bf44ffcd1d1.png?size=64"
 
 buttons = [
     {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts"}
 ]
 
-# path to txt file with the discord oauth client ID
-o_auth_file = open("oauth.txt")
-o_auth_client_id = o_auth_file.readline()
-o_auth_file.close()
+set_up_details_dir = "C:\\Users\\Public\\Downloads\\PyCharm"
+set_up_details_file = f"{set_up_details_dir}\\setup.txt"
+bat_path = f"{set_up_details_dir}\\PyCharm.bat"
 
-# path where the log will be saved
-error_log = open("log.txt", "a")
+oauth_client_id = None
+pycharm64_path = None
+status_logs = None
+current_file_logs = None
 
-# create an instance with the client ID
-rPresence = pypresence.Presence(o_auth_client_id)
+status_logs_file = f"{set_up_details_dir}\\log.txt"
+current_file_logs_file = f"{set_up_details_dir}\\file_history.txt"
 
-rPresence.connect()
-rPresence.update(state = current_tab, large_image = thumbnail, buttons = buttons, details=project)
-
-# path to PyCharm exe file
-pycharm_process = subprocess.Popen("C:\\Program Files\\JetBrains\\PyCharm Community Edition 2024.3.1.1\\bin\\pycharm64.exe")
 start_time = int(time.time())
-
 # words to capture
 targeted_phrases = [".py"]
-
 # sub strings to remove from the captured titles
 clipable_text = []
 
-time.sleep(5)
+epochs_before_terminating = 2
 
-def kill_process():
-    pycharm_process.terminate()
-    rPresence.close()
+def completed_setup() -> bool:
+    return os.path.exists(set_up_details_file)
 
-def log_message(message) :
-    hour = time.localtime().tm_hour
-    minute = time.localtime().tm_min
-    sec = time.localtime().tm_sec
-    time_of_day = "PM" if hour > 12 else "AM"
+def setup():
+    print("\nRead the readme.md file to learn how to get the required keys")
+    oauth_input = input("Enter your app's application ID: ")
+    pycharm64_path_input = input("Enter the path to pycharm64.exe: ")
+    create_bin = input("Create a desktop shortcut as 'PyCharm RP' (y|n): ")
 
-    if hour > 12:
-        hour = hour - 12
-    error_log.write(f"{message} at {f"0{hour}" if hour < 10 else hour}:{f"0{minute}" if minute < 10 else minute}:{f"0{sec}" if sec < 10 else sec} {time_of_day} on {time.localtime().tm_year}:{time.localtime().tm_mon}:{time.localtime().tm_mday}\n\n")
+    if not os.path.exists(set_up_details_dir):
+        os.mkdir(set_up_details_dir)
 
-def get_title() -> str:
+    if os.path.exists(set_up_details_dir):
+        set_up_details = open(set_up_details_file, "w")
+
+        if create_bin.lower() in ["yes", "y"]:
+            make_desktop_bat()
+
+        _status_log = open(status_logs_file, "a")
+        _current_file_logs = open(current_file_logs_file, "a")
+
+        set_up_details.write(f"{oauth_input}\n{pycharm64_path_input}")
+        set_up_details.close()
+
+        return oauth_input, pycharm64_path_input, _status_log, _current_file_logs
+    else:
+        print("set up failed, could not save setup.txt")
+        return None
+
+
+def get_details():
+    set_up_details = open(set_up_details_file, "r")
+    _oauth_client_id = set_up_details.readline()
+    _pycharm64_path = set_up_details.readline()
+    set_up_details.close()
+
+    _status_log = open(status_logs_file, "a")
+    _current_file_logs = open(current_file_logs_file, "a")
+    return _oauth_client_id, _pycharm64_path, _status_log, _current_file_logs
+
+def get_title():
     titles = []
 
     for phrase in targeted_phrases:
@@ -61,10 +86,13 @@ def get_title() -> str:
             titles.append(windows[0])
             break
 
-    return str(titles[0].title) if len(titles) > 0 else ""
+    return str(titles[0].title) if len(titles) > 0 else None
 
-def clean_title(title: str) -> str:
+def clean_title(title: str):
     new_title = title
+
+    if title is None:
+        return None
 
     if "[" in new_title:
         new_title = new_title[:new_title.index("[")]
@@ -75,26 +103,115 @@ def clean_title(title: str) -> str:
 
     return new_title
 
+def log_message(message):
+    hour = time.localtime().tm_hour
+    minute = time.localtime().tm_min
+    sec = time.localtime().tm_sec
+    time_of_day = "PM" if hour > 12 else "AM"
+
+    if hour > 12:
+        hour = hour - 12
+    status_logs.write(f"{message} at {f"0{hour}" if hour < 10 else hour}:{f"0{minute}" if minute < 10 else minute}:{f"0{sec}" if sec < 10 else sec} {time_of_day} on {time.localtime().tm_year}:{time.localtime().tm_mon}:{time.localtime().tm_mday}\n\n")
+
+
+def log_current_file(file_name):
+    hour = time.localtime().tm_hour
+    minute = time.localtime().tm_min
+    sec = time.localtime().tm_sec
+    time_of_day = "PM" if hour > 12 else "AM"
+
+    if hour > 12:
+        hour = hour - 12
+    current_file_logs.write(f"{file_name} at {f"0{hour}" if hour < 10 else hour}:{f"0{minute}" if minute < 10 else minute}:{f"0{sec}" if sec < 10 else sec} {time_of_day} on {time.localtime().tm_year}:{time.localtime().tm_mon}:{time.localtime().tm_mday}\n\n")
+
+def make_desktop_bat():
+    if not os.path.exists(bat_path):
+        bat_file = open(bat_path, "w")
+        bat_file.write(f"@echo off\npython \"{os.path.abspath(__file__)}\"\npause")
+        bat_file.close()
+
+        shell = Dispatch("WScript.Shell")
+        shortcut = shell.CreateShortCut(f"{pathlib.Path.home()}\\Desktop\\PyCharm RP.lnk")
+        shortcut.Targetpath = bat_path
+        shortcut.IconLocation = f"{pathlib.Path(__file__).parent}\\PyCharm.ico"
+        shortcut.save()
+
+def is_pycharm64_running() -> bool:
+    for pcs_iter in psutil.process_iter():
+        if pcs_iter.name() == "pycharm64.exe":
+            return True
+
+    return False
+
 if __name__ == "__main__":
     while True:
-        try:
-            cleaned_title = clean_title(get_title())
+        if completed_setup():
+            oauth_client_id, pycharm64_path, status_logs, current_file_logs = get_details()
+            log_message(f"initialized")
+        else:
+            details = setup()
 
-            if cleaned_title:
-                project = cleaned_title.split("–")[0].strip()
-                current_tab = cleaned_title.split("–")[1].strip()
+            if details is not None:
+                oauth_client_id, pycharm64_path, status_logs, current_file_logs = details
+                log_message(f"first initialization")
 
-                rPresence.update(state=project, large_image=thumbnail, start=start_time, large_text="Python", buttons=buttons, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix", details=current_tab)
-                log_message("updated rich presence")
-                print("updated rich presence")
-            else:
-                # log this message 50% of the time to reduce logging
-                if time.time() % 2 == 0:
-                    log_message("PyCharm probably not running or current file isn't listed in targeted phrases")
-                print("PyCharm probably not running or current file isn't listed in targeted phrases")
+        if pycharm64_path is not None:
+            # opening chrome in a debug environment
+            process = subprocess.Popen(f"{pycharm64_path}")
 
-        except Exception as e:
-            print(e)
-            log_message(e)
+            # create an instance with the client ID
+            rich_presence = pypresence.Presence(oauth_client_id)
+            rich_presence.connect()
+            rich_presence.update(state=project, large_image=thumbnail, buttons=buttons, start=start_time, details=current_tab)
 
-        time.sleep(15)
+            while True:
+                try:
+                    cleaned_title = clean_title(get_title())
+
+                    if cleaned_title is not None:
+                        epochs_before_terminating = 2
+                        new_tab = cleaned_title.split("–")[1].strip()
+
+                        if new_tab != current_tab:
+                            project = cleaned_title.split("–")[0].strip()
+                            current_tab = cleaned_title.split("–")[1].strip()
+
+                            rich_presence.update(state=project, large_image=thumbnail, start=start_time, large_text="Python", buttons=buttons, small_image="https://drive.usercontent.google.com/download?id=1kNJslXFWz8dWgUWenQG1EZAjuDf7UoB_", small_text="Made by PhoenixJatrix", details=current_tab)
+                            log_message("updated rich presence")
+                            print("updated rich presence")
+
+                            log_current_file(new_tab)
+                    else:
+                        if not is_pycharm64_running():
+                            if epochs_before_terminating < 1:
+                                log_message("terminated cycle because PyCharm isn't running")
+                                print("terminated cycle because PyCharm isn't running")
+                                break
+
+                            log_message(f"terminating cycle in {15 * epochs_before_terminating} seconds, PyCharm probably not running")
+                            print(f"terminating cycle in {15 * epochs_before_terminating} seconds, PyCharm probably not running")
+
+                            epochs_before_terminating -= 1
+                        else:
+                            log_message("Current file extension (or name) isn't in targeted phrases")
+                            print("Current file extension (or name) isn't in targeted phrases")
+
+                except Exception as e:
+                    print(e)
+                    log_message(e)
+
+                time.sleep(15)
+
+        if epochs_before_terminating < 1:
+            break
+
+        command = input("Encountered an issue. Restart? (y|n): ")
+
+        if command.lower() in ["yes", "y"]:
+            print("Restarting")
+            log_message("restarting")
+
+            continue
+        else:
+            log_message("end process")
+            break
