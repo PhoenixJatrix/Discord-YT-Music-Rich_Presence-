@@ -10,7 +10,7 @@ from win32com.client import Dispatch
 
 project = "Deciphering..."
 current_tab = "Deciphering..."
-thumbnail = "https://cdn.discordapp.com/app-icons/1337221355300720651/1f9e0828106b6dabce6f8bf44ffcd1d1.png?size=64"
+thumbnail = "https://cdn.discordapp.com/app-icons/1337216685257527306/67ff03a593c16b7885a03ccc5751d7bb.png?size=64"
 
 buttons = [
     {"label": "Git Repo", "url": "https://github.com/PhoenixJatrix/Discord-Rich-Presence-Python-Scripts"}
